@@ -13,6 +13,19 @@ carname="Volvo"
 print(carname)
 #Output: Volvo
 
+
+x = 4       # x is of type int
+x = "Sally" # x is now of type str
+print(x)
+#Sally
+
+
+
+x = str(3)    # x will be '3'
+y = int(3)    # y will be 3
+z = float(3)  # z will be 3.0
+
+
 x=50
 print(x)
 #Output:50
@@ -47,6 +60,19 @@ b = 5
 print(a + b)
 #9
 
+
+x = "Python"
+y = "is"
+z = "awesome"
+print(x, y, z)
+#Python is awesome
+
+
+x = "Python "
+y = "is "
+z = "awesome"
+print(x + y + z)
+#Python is awesome
 
 x = 'awesome'
 def myfunc():

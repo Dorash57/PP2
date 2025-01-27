@@ -1,5 +1,9 @@
 #Topic: Data Types-Casting
 
+x = 5
+print(type(x))
+#<class 'int'>
+
 
 x = {"name" : "John", "age" : 36}
 print(type(x))

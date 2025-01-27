@@ -4,6 +4,29 @@ x = 'Welcome'
 print(x[3])
 #с
 
+print("It's alright")
+print("He is called 'Johnny'")
+print('He is called "Johnny"')
+# It's alright
+# He is called 'Johnny'
+# He is called "Johnny"
+
+
+a = "Hello"
+print(a)
+#Hello
+
+
+a = """Lorem ipsum dolor sit amet,
+consectetur adipiscing elit,
+sed do eiusmod tempor incididunt
+ut labore et dolore magna aliqua."""
+print(a)
+#Lorem ipsum dolor sit amet,
+# consectetur adipiscing elit,
+# sed do eiusmod tempor incididunt
+# ut labore et dolore magna aliqua.
+
 
 x = "Hello World"
 print(len(x))
@@ -21,9 +44,18 @@ if 'free' in txt:
   print('Yes, free is present in the text.')
 #Yes, free is present in the text.
 
+txt = "The best things in life are free!"
+print("expensive" not in txt)
+#True
+
 x = 'Welcome'
 print(x[3:5])
 #co
+
+
+b = "Hello, World!"
+print(b[-5:-2])
+#orl
 
 
 txt = "Hello World"
@@ -61,6 +93,12 @@ print(txt)
 #Jello World
 
 
+a = "Hello, World!"
+b = a.split(",")
+print(b)
+#['Hello', ' World!']
+
+
 x = 'Welcome'
 y = 'Coders'
 print(x + y)
@@ -86,3 +124,7 @@ print(txt)
 
 print(f'The price is {2 + 3} dollars')
 #The price is 5 dollars
+
+
+txt = "We are the so-called \"Vikings\" from the north."
+#We are the so-called "Vikings" from the north.
