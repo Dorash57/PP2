@@ -13,11 +13,6 @@ class Prime:
     def filter_prime_numbers(self):
         return list(filter(lambda x: self.is_prime(x), self.numbers))
 
-n = int(input("n: "))
-mylist = []
-for i in range(n):
-    number = int(input("number: "))
-    mylist.append(number)
-
+mylist=list(map(int, input("List: ").split()))
 prime_filter = Prime(mylist)
 print(prime_filter.filter_prime_numbers())

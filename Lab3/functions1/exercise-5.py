@@ -1,20 +1,19 @@
-# def permutations(mystr):
-#     n=len(mystr)
-#     for i in range(n):
-#         for j in range(n):
-#             print(mystr[(j-i)], end=" ")
+def Permutation(text):
+    for i in range(len(text)):
+        if len(text) == 1:
+            return text
+        
+    result = []
+    for i in range(len(text)):
+        current = text[i]
+        remaining = text[:i] + text[i+1:]
 
+        perms = Permutation(remaining)
 
-# mystr=str(input("String: "))
-# permutations(mystr)
+        for j in range (len(perms)):
+            result.append(current + perms[j])
+        
+    return result
 
-
-def permutations(some):
-    n = len(some)
-
-    for i in range(n):
-        for j in range(n):
-            print(some[(j-i)], end=" ")
-        print()
-k=str(input("soz:"))
-permutations(k)
+text = input("Text: ")
+print(Permutation(text))
