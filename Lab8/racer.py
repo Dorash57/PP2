@@ -1,211 +1,167 @@
-# Imports
-import pygame, sys
+import pygame
+import random
+import time
+import sys
 from pygame.locals import *
-import random, time
 
-# Initialzing
 pygame.init()
+pygame.mixer.init()
 
-# FPS
-FPS =60
-FramePerSec = pygame.time.Clock()
-
-# Creating colors
-BLUE = (0, 0, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-
-# Other Variables for use in the program
+# Настройки экрана
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
-SPEED = 3
-SCORE = 0
-COINS = 0
-
-
-# Setting up Fonts
-font = pygame.font.SysFont("Verdana", 20)
-font_small = pygame.font.SysFont("Verdana", 20)
-game_over = font.render("Game Over", True, BLACK)
-
-background = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Road.png')
-
-# Create a white screen
-screen = pygame.display.set_mode((400, 600))
-screen.fill(WHITE)
+SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Racer")
 
+# Частота кадров
+FPS = 60
+clock = pygame.time.Clock()
+
+# Цвета
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+
+# Шрифты
+font = pygame.font.SysFont("Verdana", 20)
+font_large = pygame.font.SysFont("Verdana", 40)
+
+# Загрузка изображений
+background = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Road.png').convert()
+background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT * 2))  # Удлиняем дорогу
+player_img = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Player.png').convert_alpha()
+enemy_img = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Enemy.png').convert_alpha()
+coin_img = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Coin.png').convert_alpha()
+coin_img = pygame.transform.scale(coin_img, (40, 40))
+
+# Звук
+crash_sound = pygame.mixer.Sound('/Users/bms/PP2/PP2 Lab/Lab8/pictures/crash.wav')
+
+# Параметры игры
+SPEED = 5
+SCORE = 0
+COINS = 0
+road_y = 0  # Позиция дороги
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__()
-        self.image = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Enemy.png')
+        super().__init__() 
+        self.image = enemy_img
         self.rect = self.image.get_rect()
-        self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
-
+        self.reset_position()
+        self.speed = SPEED  # Добавляем скорость врагу
+    
+    def reset_position(self):
+        self.rect.center = (random.randint(40, SCREEN_WIDTH-40), -100)
+    
     def move(self):
-        global SCORE
-        self.rect.move_ip(0, SPEED)
-        if (self.rect.top > 600):
-            SCORE += 1
-            self.rect.top = 0
-            self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
+        self.rect.y += self.speed  # Используем собственную скорость
+        if self.rect.top > SCREEN_HEIGHT:
+            self.reset_position()
+            self.speed = SPEED * random.uniform(0.9, 1.1)  # Случайная скорость
 
-#added class Coin for coin to appear and to count the number of coins
-c1,c2,c3,c4,c5 = False, False, False, False, False
 class Coin(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/coin.png')
-        self.image = pygame.transform.scale(self.image, (40, 40))
+        self.image = coin_img
         self.rect = self.image.get_rect()
-        self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), random.randint(40, SCREEN_HEIGHT - 40))
-
+        self.reset_position()
+    
+    def reset_position(self):
+        self.rect.center = (random.randint(40, SCREEN_WIDTH-40), -300)
+    
     def move(self):
-        global COINS
-        global SPEED
-        #adding different amount of coins depending on location of coin
-        if self.rect.bottom<SCREEN_HEIGHT//3:
-            COINS += 3
-        elif self.rect.bottom<SCREEN_HEIGHT//1.5:
-            COINS += 2
-        else:
-            COINS += 1
-        global c1,c2,c3,c4,c5
-        if not c1 and COINS>=10:
-            SPEED+=1
-            c1=True
-        if not c2 and COINS>=20:
-            SPEED+=1
-            c2=True
-        if not c3 and COINS>=30:
-            SPEED+=1
-            c3=True
-        if not c4 and COINS>=40:
-            SPEED+=1
-            c4=True
-        if not c5 and COINS>=50:
-            SPEED+=1
-            c5=True
-        self.rect.top = random.randint(40, SCREEN_WIDTH - 40)
-        self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), random.randint(40, SCREEN_HEIGHT - 40))
+        self.rect.y += SPEED
+        if self.rect.top > SCREEN_HEIGHT:
+            self.reset_position()
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__()
-        self.image = pygame.image.load('/Users/bms/PP2/PP2 Lab/Lab8/pictures/Player.png')
+        super().__init__() 
+        self.image = player_img
         self.rect = self.image.get_rect()
-        self.rect.center = (160, 520)
-
+        self.rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT-100)
+        self.speed = 5
+        self.mask = pygame.mask.from_surface(self.image)
+    
     def move(self):
         pressed_keys = pygame.key.get_pressed()
-        if self.rect.left > 0:
-            if pressed_keys[K_LEFT]:
-                self.rect.move_ip(-5, 0)
-        if self.rect.right < SCREEN_WIDTH:
-            if pressed_keys[K_RIGHT]:
-                self.rect.move_ip(5, 0)
-        if self.rect.top > 0:
-            if pressed_keys[K_UP]:
-                self.rect.move_ip(0, -5)
-        if self.rect.bottom < SCREEN_HEIGHT:
-            if pressed_keys[K_DOWN]:
-                self.rect.move_ip(0, 5)
-                
-# Setting up Sprites
-P1 = Player()
-E1 = Enemy()
-C1 = Coin()
+        if pressed_keys[K_LEFT] and self.rect.left > 0:
+            self.rect.x -= self.speed
+        if pressed_keys[K_RIGHT] and self.rect.right < SCREEN_WIDTH:
+            self.rect.x += self.speed
+        if pressed_keys[K_UP] and self.rect.top > 0:
+            self.rect.y -= self.speed
+        if pressed_keys[K_DOWN] and self.rect.bottom < SCREEN_HEIGHT:
+            self.rect.y += self.speed
 
-# Creating Sprites Groups
-enemies = pygame.sprite.Group()
-enemies.add(E1)
-coinss = pygame.sprite.Group()
-coinss.add(C1)
-all_sprites = pygame.sprite.Group()
-all_sprites.add(P1)
-all_sprites.add(E1)
-all_sprites.add(C1)
+# Создание объектов
+player = Player()
+enemy = Enemy()
+coin = Coin()
 
-# Adding a new User event
-INC_SPEED = pygame.USEREVENT + 1
-pygame.time.set_timer(INC_SPEED, 1000)
-
-
-def game_over_screen():
-    screen.fill(RED)
-    screen.blit(game_over, (30, 250))
-    pygame.display.update()
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == KEYDOWN:
-                if event.key == K_SPACE:  # Продолжить игру при нажатии на пробел
-                    return True
-                elif event.key == K_ESCAPE:  # Закончить игру при нажатии на ESC
-                    return False
-
-def handle_crash():
-    time.sleep(2)
-
-background_y = 0  # Initialize background y-coordinate
-
+# Основной цикл
 while True:
+    # Обработка событий
     for event in pygame.event.get():
-        if event.type == INC_SPEED:
-            SPEED += 0.1
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-
-    # If there is a collision between a player and an enemy
-    if pygame.sprite.spritecollideany(P1, enemies):
-        continue_game = handle_crash()
-        if not continue_game:
-            pygame.quit()
-            sys.exit()
-
-    # Scroll the background
-    background_y = (background_y + SPEED) % background.get_height()
-
-    # Draw the background at the calculated position
-    screen.blit(background, (0, background_y))
-    screen.blit(background, (0, background_y - background.get_height()))
-
-    scores = font_small.render(str(SCORE), True, BLACK)
-    screen.blit(scores, (10, 10))
-
-    coins = font_small.render(str(COINS), True, BLACK)
-    screen.blit(coins, (370, 10))
-
-    # Moves and Re-draws all Sprites
-    for entity in all_sprites:
-        screen.blit(entity.image, entity.rect)
-
-        # Increase the number of coins if collision with player happened
-        if entity == C1:
-            if pygame.sprite.spritecollideany(P1, coinss):
-                entity.move()
-        else:
-            entity.move()
-
-    # Move the second random car
-    for enemy in enemies:
-        enemy.move()
-
-    # Move the coins
-    for coin in coinss:
-        coin.rect.y += SPEED
-
-        # Respawn coins if they go off-screen
-        if coin.rect.top > SCREEN_HEIGHT:
-            coin.rect.y = -coin.rect.height
-            coin.rect.x = random.randint(40, SCREEN_WIDTH - 40)
-
+    
+    # Обновление позиции дороги
+    road_y += SPEED
+    if road_y >= SCREEN_HEIGHT:
+        road_y = 0
+    
+    # Обновление объектов
+    player.move()
+    enemy.move()
+    coin.move()
+    
+    # Увеличение счета
+    SCORE += 0.1
+    
+    # Проверка столкновений с монеткой
+    if pygame.sprite.collide_mask(player, coin):
+        COINS += 1
+        coin.reset_position()
+    
+    # Проверка столкновений с врагом
+    if pygame.sprite.collide_mask(player, enemy):
+        crash_sound.play()  # Звук столкновения
+        time.sleep(0.5)
+        
+        # Game Over экран
+        SCREEN.fill(RED)
+        game_over_text = font_large.render("GAME OVER", True, BLACK)
+        score_text = font.render(f"Final Score: {int(SCORE)}", True, BLACK)
+        coins_text = font.render(f"Coins: {COINS}", True, BLACK)
+        
+        SCREEN.blit(game_over_text, (SCREEN_WIDTH//2 - game_over_text.get_width()//2, SCREEN_HEIGHT//2 - 60))
+        SCREEN.blit(score_text, (SCREEN_WIDTH//2 - score_text.get_width()//2, SCREEN_HEIGHT//2))
+        SCREEN.blit(coins_text, (SCREEN_WIDTH//2 - coins_text.get_width()//2, SCREEN_HEIGHT//2 + 40))
+        
+        pygame.display.update()
+        time.sleep(2)
+        pygame.quit()
+        sys.exit()
+    
+    # Отрисовка дороги
+    SCREEN.blit(background, (0, road_y - SCREEN_HEIGHT))
+    SCREEN.blit(background, (0, road_y))
+    
+    # Отрисовка остальных объектов 
+    SCREEN.blit(enemy.image, enemy.rect)
+    SCREEN.blit(coin.image, coin.rect)
+    SCREEN.blit(player.image, player.rect)
+    
+    # Отображение счетчиков
+    score_display = font.render(f"Score: {int(SCORE)}", True, BLACK)
+    coins_display = font.render(f"Coins: {COINS}", True, YELLOW)
+    
+    SCREEN.blit(score_display, (10, 10))
+    SCREEN.blit(coins_display, (10, 40))
+    
     pygame.display.update()
-    FramePerSec.tick(FPS)
+    clock.tick(FPS)
